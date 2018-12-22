@@ -1,109 +1,113 @@
 
-%actividade(_Id, _Nome);
-actividade(1,futebol).
-actividade(2,krav_maga).
-actividade(3,piano).
-actividade(4,canto).
-%actividade(5,badmington).
+%The maximum and minimum values for the preferences for each activity
+%The step is 10
+maxActivityWeight(40).
+minActivityWeight(10).
 
-%local(_id, _NomeLocal)
-local(1,casa).
-local(2,campo_de_futebol).
-local(3,escola_de_artes_marciais).
-local(4,escola_de_musica).
-local(5,casa_da_musica).
 
-%idTipoActividade(_Id, _Nome);
-idTipoActividade(1, desporto).
-idTipoActividade(2, musica).
+%activityTypeId(_Id, _Nome);
+activityTypeId(1, sports).
+activityTypeId(2, music).
 
-%idadeMinimaActividade(_Id, _IdadeMinima);
-idadeMinimaActividade(1,6).
-idadeMinimaActividade(2,11).
-idadeMinimaActividade(3,6).
-idadeMinimaActividade(4,0).
-idadeMinimaActividade(5,3).
+%activity(_Id, _Nome);
+activity(1,futebol).
+activity(2,krav_maga).
+activity(3,piano).
+activity(4,canto).
 
-%tipoActividade(_Id, _IdTipo);
-tipoActividade(1, 1).
-tipoActividade(2, 1).
-tipoActividade(3, 2).
-tipoActividade(4, 2).
-tipoActividade(5, 1).
+%activityType(_Id, _IdTipo);
+activityType(1, 1).
+activityType(2, 1).
+activityType(3, 2).
+activityType(4, 2).
 
-%horaInicio(_Id,_Hora HH:mm (24h))
-horaInicio(1,1700).
-horaInicio(2,1628).
-horaInicio(3,1655).
-horaInicio(4,1610).
+%location(_id, _LocationName)
+location(0,casa).
+location(1,campo_de_futebol).
+location(2,escola_de_artes_marciais).
+location(3,conservatorio).
+location(4,escola_de_musica).
 
-%duracao(_Id,_TempoMinutos)
-duracaoActividade(1,120).
-duracaoActividade(2,90).
-duracaoActividade(3,90).
-duracaoActividade(4,30).
+%activityMinimumAge(_Id, _MinimumAge);
+activityMinimumAge(1,6).
+activityMinimumAge(2,11).
+activityMinimumAge(3,3).
+activityMinimumAge(4,0).
 
-%%% Localizações
-% 1, Casa
-% 2, Campo de futebol (Futebol)
-% 3, Escola de artes marciais (Krav Maga
-% 4, Escola de Música (Piano)
-% 5, Casa da Música (Canto)
+%startTime(_Id,_Hour HH:mm (24h))
+startTime(1,1610).
+startTime(2,1645).
+startTime(3,1610).
+startTime(4,1628).
+
+%endTime(_Id,_Hour HH:mm (24h))
+endTime(1,1900).
+endTime(2,1815).
+endTime(3,1740).
+endTime(4,1658).
+
+%duration(_Id,_TimeInMinutes)
+duration(1,120).
+duration(2,90).
+duration(3,90).
+duration(4,30).
+
 % Carro anda a 50km/h a pé 5km/h
+%travelByCar(_Fom,_To,_TimeInMinutes)
+travelByCar(0,1,12).
+travelByCar(0,2,18).
+travelByCar(0,3,6).
+travelByCar(0,4,6).
 
-%tempoCarro(_De,_Para,_TempoMinutos)
-tempoCarro(1,2,12).
-tempoCarro(1,3,18).
-tempoCarro(1,4,6).
-tempoCarro(1,5,14).
+travelByCar(1,0,12).
+travelByCar(1,1,0).
+travelByCar(1,2,6).
+travelByCar(1,3,13).
+travelByCar(1,4,7).
 
-tempoCarro(2,1,12).
-tempoCarro(2,3,6).
-tempoCarro(2,4,13).
-tempoCarro(2,5,7).
+travelByCar(2,0,18).
+travelByCar(2,1,6).
+travelByCar(2,2,0).
+travelByCar(2,3,12).
+travelByCar(2,4,1).
 
-tempoCarro(3,1,18).
-tempoCarro(3,2,6).
-tempoCarro(3,4,12).
-tempoCarro(3,5,1).
+travelByCar(3,0,6).
+travelByCar(3,1,13).
+travelByCar(3,2,12).
+travelByCar(3,3,0).
+travelByCar(3,4,7).
 
-tempoCarro(4,1,6).
-tempoCarro(4,2,13).
-tempoCarro(4,3,12).
-tempoCarro(4,5,7).
+%travelByFoot(_From,_To,_TimeInMinutes)
+travelByFoot(0,1,120).
+travelByFoot(0,2,180).
+travelByFoot(0,3,60).
+travelByFoot(0,4,144).
 
-tempoCarro(5,1,14).
-tempoCarro(5,2,7).
-tempoCarro(5,3,1).
-tempoCarro(5,4,7).
+travelByFoot(1,0,120).
+travelByFoot(1,1,0).
+travelByFoot(1,2,60).
+travelByFoot(1,3,132).
+travelByFoot(1,4,72).
 
-%tempoAPe(_De,_Para,_TempoMinutos)
-tempoAPe(1,2,120).
-tempoAPe(1,3,180).
-tempoAPe(1,4,60).
-tempoAPe(1,5,144).
+travelByFoot(2,0,180).
+travelByFoot(2,1,60).
+travelByFoot(2,2,0).
+travelByFoot(2,3,120).
+travelByFoot(2,4,12).
 
-tempoAPe(2,1,120).
-tempoAPe(2,3,60).
-tempoAPe(2,4,132).
-tempoAPe(2,5,72).
+travelByFoot(3,0,60).
+travelByFoot(3,1,132).
+travelByFoot(3,2,120).
+travelByFoot(3,3,0).
+travelByFoot(3,4,72).
 
+travelByFoot(4,0,144).
+travelByFoot(4,1,72).
+travelByFoot(4,2,12).
+travelByFoot(4,3,72).
+travelByFoot(4,4,0).
 
-tempoAPe(3,1,180).
-tempoAPe(3,2,60).
-tempoAPe(3,4,120).
-tempoAPe(3,5,12).
-
-tempoAPe(4,1,60).
-tempoAPe(4,2,132).
-tempoAPe(4,3,120).
-tempoAPe(4,5,72).
-
-tempoAPe(5,1,144).
-tempoAPe(5,2,72).
-tempoAPe(5,3,12).
-tempoAPe(5,4,72).
-
-%margemTempo(_Minutos).
+%marginTime(_TimeInMinutes).
 %Tempo de margem para chegar a cada local (mais ou menos da hora de fim ou inicio)
-margemTempo(5).
+marginTime(5).
+dropOffTime(1).
