@@ -32,49 +32,6 @@
 %   This function adds the restrictions for the minimum age and tries to
 %   pair activities with the preference of each sun. This function assumes
 %   that the number of children and activities is the same.
-%
-
-routeRestrictionsOld([Child|T],Children,Activities):-
-        write('.......EnteringRoute.....'),nl,
-        write('Children: '),write(Children),nl,
-        write('Activities: '),write(Activities),nl,
-    element(Position,Children,Child),
-    element(Position,Activities,Activity),
-    horaInicio(Activity,StartTime),
-    dropOffTime(DropOffTime),
-    sumMinToTime(StartTime,DropOffTime,NextRouteStartTime),
-    routeRestrictions(T,NextRouteStartTime,Activity,Children,Activities).
-
-routeRestrictions([],_,_,_,_). %O tempo de chegada da última tem que respeitar o intervalo
-routeRestrictions([Child|T],RouteStartTime,PrevActivity,Children,Activities):-
-        write('.......IteractionRoute.....'),nl,
-    marginTime(Margin),
-    dropOffTime(DropOffTime),
-    element(Position,Children,Child),
-    element(Position,Activities,Activity),
-        write('Child is: '),write(Child),write(' - '),
-        write('Activity is: '),write(Activity),nl,
-    horaInicio(Activity,StartActivity),
-        write('Route Start Time is: '),write(RouteStartTime),write('-'),
-        write('Next Activity Starts at: '),write(StartActivity),nl,
-    %
-    tempoCarro(PrevActivity,Activity,T), %A base de dados liga actividades mas terá que ligar locais
-    sumMinToTime(RouteStartTime,T,ArrivalTime),
-    sumMinToTime(StartActivity,Margin,TMoreMargin),
-    subtractMinToTime(StartActivity,Margin,TLessMargin),
-%    sumMinToTime(StartActivity,Margin,StartActMoreMargin),
-%    subtractMinToTime(StartActivity,Margin,StartActLessMargin),
-        write('Arrival Time: '),write(ArrivalTime),write('-'),
-        write('More Margin: '),write(TMoreMargin),write('-'),
-        write('Less Margin: '),write(ArrivalTime),nl,
-%    (StartActivity #= ArrivalTime) #\/ (StartActMoreMargin #= TMoreMargin) #\/ (StartActLessMargin #= TLessMargin),
-%    getNextStartTime(A,B,C,TChegada,TMoreMargin,TLessMargin,NextStartTime),
-
-
-    (StartActivity #>= TLessMargin) #/\ (StartActivity #=< TMoreMargin),
-    sumMinToTime(ArrivalTime,DropOffTime,NextStartTime),
-        write('Next Start Time: '),write(NextStartTime),write('---------'),nl,
-    routeRestrictions(T,NextStartTime,Activity,Children,Activities).
 
 %%%%%%%%%%%%%%%%%%%
 
@@ -102,22 +59,89 @@ evaluatePreferences([C|CR],[A|AR],Preferences,SumAux,ListOfPreferences):-
 evaluatePreferences(Children,Activities,Preferences,ListOfPreferences):-
     evaluatePreferences(Children,Activities,Preferences,[],ListOfPreferences).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+getWalkingPaths([],WalkingPaths,_,WalkingPaths).
+getWalkingPaths([[A,B,T]|R],Aux,WalkingTime,WalkingPaths):-
+    T =< WalkingTime,
+    append([[A,B]],Aux,Aux1),
+    getWalkingPaths(R,Aux1,WalkingTime,WalkingPaths).
+
+getWalkingPaths([[_,_,_]|R],Aux,WalkingTime,WalkingPaths):-
+    getWalkingPaths(R,Aux,WalkingTime,WalkingPaths).
+
+getWalkingPaths(WalkingTime,WalkingPaths):-
+    findall([A,B,Time],travelByFoot(A,B,Time),FootPaths),
+    getWalkingPaths(FootPaths,[],WalkingTime,WalkingPaths).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+getPathTimes(_,_,[],_TravelTime).
+getPathTimes(PosA,PosB,[[A,B,Time]|T],TravelTime):-
+    (PosA#=A #/\ PosB#=B) #=> (TravelTime #= Time),
+    getPathTimes(PosA,PosB,T,TravelTime).
+
+getFootTravelTimes(PosA,PosB,TravelTime):-
+    findall([A,B,Time],travelByFoot(A,B,Time),FootPaths),
+    getPathTimes(PosA,PosB,FootPaths,TravelTime).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%getChildrenThatCanWalk([],_,_,_,_).
+%getChildrenThatCanWalk([A|T],Children,Ages,WalkingAge,ChildrenCanWalk):-
+%    element(Pos,Children,A),
+%    element(Pos,Ages,Age),
+%    (Age#>=WalkingAge) #<=> B,
+%    Value #= B*A,
+%    element(Pos,ChildrenCanWalk,Value),
+%    getChildrenThatCanWalk(T,Children,Ages,WalkingAge,ChildrenCanWalk).
+getChildrenThatCanWalk([],_WalkingAge,ChildrenCanWalk,ChildrenCanWalk).
+getChildrenThatCanWalk([C|Cr],WalkingAge,ChildrenCanWalkAux,ChildrenCanWalk):-
+    ageChildren(C,Age),
+    Age >= WalkingAge,
+    append([C],ChildrenCanWalkAux,Aux),
+    getChildrenThatCanWalk(Cr,WalkingAge,Aux,ChildrenCanWalk).
+
+getChildrenThatCanWalk([_|Cr],WalkingAge,ChildrenCanWalkAux,ChildrenCanWalk):-
+    getChildrenThatCanWalk(Cr,WalkingAge,ChildrenCanWalkAux,ChildrenCanWalk).
+
+getChildrenThatCanWalk(IdChildrenAux,WalkingAge,ChildrenCanWalk):-
+    getChildrenThatCanWalk(IdChildrenAux,WalkingAge,[],ChildrenCanWalk).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%populateList(_,Position,Position,_).
+%populateList(List,FromPosition,ToPosition,Value):-
+%    P #= FromPosition +1,
+%    element(P,List,Value),
+%    populateList(List,P,ToPosition,Value).
+
+
 
 %Predicado para verificar se o número de filhos e de actividades é diferente
 % Mais filhos do que actividades
 % Mais actividade do que filhos
 % Número de filhos e de actividades igual
+
+%At this version, the knowledge base should have consistent data, on a new version is easy to remove activities that
+%have times overlaping, which would always be impossible to match and compare the number of remaining activities with the
+%number of children to void the knowledge base if it does not have sufficient activities for all children.
 getScheduleAndRoute:-
     %Prepare Variables
-    findall(IdChildren,children(IdChildren,_Age),IdChildrenAux),
+    findall(IdChildren,children(IdChildren,_Name),IdChildrenAux),
     findall(IdActividade,activity(IdActividade,_NameA),IdActivitiesAux),
     findall(Age,ageChildren(_,Age),AgeAux),
     findall(MinAge,activityMinimumAge(_,MinAge),MinAgeAux),
     findall([C,A,V],preference(C,A,V),Preferences),
 
     %%%Route
-    findall(StartTime,startTime(_,StartTime),StartTimes),
-    findall(Duration,duration(_,Duration),Durations),
+    findall(StartTime,startTime(_,StartTime),StartTimesAux),
+    findall(EndTime,endTime(_,EndTime),EndTimesAux),
+    minimumAgeForWalking(WalkingAge),
+    maxTimeWalking(WalkingTime),
+    findall([A,B,Time],travelByCar(A,B,Time),RoutePaths),
+    getWalkingPaths(WalkingTime,WalkingPaths),
+    getChildrenThatCanWalk(IdChildrenAux,WalkingAge,ChildrenCanWalk),
 
 
     length(IdChildrenAux,NumberOfChildren),
@@ -128,8 +152,18 @@ getScheduleAndRoute:-
     length(Ages,NumberOfChildren),
     length(MinAges,NumberOfActivities),
     %Route
+    length(RoutePaths,NumberOfPossiblePaths),
+    NumberOfPaths is NumberOfChildren*2,
+    VoidNumber is NumberOfPossiblePaths+1,
+    length(Route,NumberOfPaths),
+    length(StartTimes,NumberOfActivities),
+    length(EndTimes,NumberOfActivities),
+%    length(ChildrenCanWalk,NumberOfChildren),
+    length(ExcludingRoutes,NumberOfPossiblePaths),
 
-
+    domain(ExcludingRoutes,0,VoidNumber),
+    %0 is default, no children with id 0
+%    domain(ChildrenCanWalk,1,NumberOfChildren),
 
 
     domain(Children,1,NumberOfChildren),
@@ -143,85 +177,63 @@ getScheduleAndRoute:-
     SumResultMax is Max * NumberOfChildren,
     SumResultMin is Min * NumberOfChildren,
     SumResult in SumResultMin..SumResultMax,
-
     %%%Route
-    Route
+    domain(Route,0,VoidNumber),
+    getGlobalCardinalityDomain(StartTimesAux,StartTimeDomain),
+    getGlobalCardinalityDomain(EndTimesAux,EndTimeDomain),
+    global_cardinality(StartTimes,StartTimeDomain),
+    global_cardinality(EndTimes,EndTimeDomain),
 
     all_distinct(Children),
     all_distinct(Activities),
-    %All ages are diferent (evolve that?)
+    %All ages are diferent (evolve that?) (Removing this should be enough)
     all_distinct(Ages),
     all_distinct(MinAges),
+    %%%Route
+    all_distinct(StartTimes),
+    all_distinct(EndTimes),
     %Prepare Results
     linkIndexesAndValues(AgeAux,Children,Ages),
     linkIndexesAndValues(MinAgeAux,Activities,MinAges),
+    %%%Route
+    linkIndexesAndValues(StartTimesAux,Activities,StartTimes),
+    linkIndexesAndValues(EndTimesAux,Activities,EndTimes),
+    %Restrictions
     ageAndPreferenceRestrictions(Children,Activities,Ages,MinAges),
     evaluatePreferences(Children,Activities,Preferences,ListOfPreferences),
     sumAirVariable(ListOfPreferences,SumResult),
+    %%%Route
+    calculateRoute(
+        NumberOfActivities,
+        VoidNumber,
+        Route,
+        RoutePaths,
+        ChildrenCanWalk,
+        WalkingPaths,
+        Children,
+        Activities,
+        StartTimes,
+        EndTimes,
+        ExcludingRoutes,
+        1,
+        NumberOfPaths,
+        Count
+    ),
+
     append(Children,Activities,CA),
-%    append(CA,Ages,CAG),
-%    append(CAG,MinAges,Vars),
-    write('Vars Before: '),write(CA),nl,
+    append(CA,Route,CAR),
+    append(CAR,ExcludingRoutes,CARE),
+    write('Vars Before: '),write(CARE),nl,
     write('SumResult: '),write(SumResult),nl,
-    labeling([maximize(SumResult)],[SumResult|CA]),
+    labeling([maximize(SumResult)],[SumResult|CARE]),
     write('Childs: '),write(Children),nl,
     write('Activities: '),write(Activities),nl,
-    write('SumResult: '),write(SumResult),nl.
-%    write('Ages: '),write(Ages),nl,
-%    write('MinAges: '),write(MinAges).
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-getScheduleAndRouteOld:-
-    %generate Domains
-    findall(IdChildren,children(IdChildren,_NameC,_Age),RChildren), %Get all childrens (useful to escalate)
-    findall(IdActividade,actividade(IdActividade,_NameA),RActivities), %Get all activities (useful to escalate)
-        write('Childrens: '),write(RChildren),nl,
-        write('Activities: '),write(RActivities),nl,
-        read(_),
-    %Generate Array of Children Id's
-    length(RChildren,NumberOfChildren), %same_length
-    length(Children,NumberOfChildren),
-    %Generate Array of Activities Id's
-    length(RActivities,NumberOfActivities),
-    length(Activities,NumberOfActivities),
-    %Generate Array of Routes
-    NumberOfNodes is NumberOfChildren*2, %DropOff and PickUp for each child
-    length(GoActivities,NumberOfNodes),
-
-    findall(Age,ageChildren(_,Age),A),
-    same_length(Ages,A),
-    ageDomain(Ages,A),
-        write('Instance Ages: '),write(A),nl,
-        write('No Instance Ages: '),write(Ages),nl,
-        read(_),
-    findall(MinAge,activityMinimumAge(_,MinAge),M),
-    same_length(MinAges,M),
-    ageDomain(MinAges,M),
-       write('Instance MinAges: '),write(M),nl,
-       write('No Instance MinAges: '),write(MinAges),nl,
-       read(_),
-    all_distinct(Ages),
-    all_distinct(MinAges),
-    %Domains
-    domain(Children,1,NumberOfChildren),
-    domain(Activities,1,NumberOfActivities),
-    domain(GoActivities,0,NumberOfChildren),
-    all_distinct(Children),
-    all_distinct(Activities), %pode haver mais do que um filho na mesma actividade
-    %restrictions 4 and 5
-        write('Childrens: '),write(Children),nl,
-        write('Activities: '),write(Activities),nl,
-        read(_),
-    ageAndPreferenceRestrictions(Children,Activities,Preference),
-%    routeRestrictions(GoActivities,Children,Activities),
-
-    append(Children,Activities,Aux),
-    append(Aux,GoActivities,MyVars),
-    write(MyVars),nl,
-    labeling([maximize(Preference)],MyVars),
-    write('Children: '),write(Children),nl,
-    write('Weight: '),write(Preference),nl,
-    write('Activities: '),write(Activities),nl,
-    write('Go Route: '),write(GoActivities),nl.
+    write('SumResult: '),write(SumResult),nl,
+    write('Route: '),write(Route),nl,
+        write('Ages: '),write(Ages),nl,
+        write('StartTimes: '),write(StartTimes),nl,
+        write('EndTimes: '),write(EndTimes),nl,
+        write('ChildrenCanWalk: '),write(ChildrenCanWalk),nl,
+        write('WalkingPaths: '),write(WalkingPaths),nl,
+        write('ExcludingRoutes: '),write(ExcludingRoutes),nl,
+        write(RoutePaths).
