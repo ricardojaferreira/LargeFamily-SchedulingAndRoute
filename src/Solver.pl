@@ -1,28 +1,3 @@
-/*
-    1º Todos os filhos diferentes
-    2º Todas as actividades diferentes
-    3º Cada filho só pode ter uma actividade
-    4º O filho só pode ir para a actividade se a idade for adequada
-    5º Atribuir filho a actividade conforme preferência
-
-    Actividades não podem começar ao mesmo tempo
-    Tempo de inicio em actividades tem que ser igual ao anterior mais o
-        tempo de deslocacao, com tolerancia de 5min
-
-    Restrições da deslocação (Ir e Vir):
-
-        (Começa em casa, a hora de saída será o inicio da primeira activida menos o tempo da deslocação menos dropOff).
-        1º A actividade seguinte tem que começar depois da anterior mais o tempo de deslocação (+/- 5min opcional)
-            + dropOffTime
-        2º O tempo para a próxima vai depender do tempo actual.
-
-        2º A primeira a acabar tem que acabar depois da última entrega mais o tempo de deslocação (+5min opcional)
-        3º A actividade a acabar seguinte tem que acabar depois da anterior mais o tempo de deslocação (+5min opcional)
-
-        5º A última posição é a casa
-
-
-*/
 :-include('utils/includes.pl').
 
 %ageAndPreferenceRestrictions(_Children,_Activities)
@@ -110,14 +85,6 @@ getChildrenThatCanWalk(IdChildrenAux,WalkingAge,ChildrenCanWalk):-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%populateList(_,Position,Position,_).
-%populateList(List,FromPosition,ToPosition,Value):-
-%    P #= FromPosition +1,
-%    element(P,List,Value),
-%    populateList(List,P,ToPosition,Value).
-
-
-
 %Predicado para verificar se o número de filhos e de actividades é diferente
 % Mais filhos do que actividades
 % Mais actividade do que filhos
@@ -133,8 +100,6 @@ getScheduleAndRoute:-
     findall(Age,ageChildren(_,Age),AgeAux),
     findall(MinAge,activityMinimumAge(_,MinAge),MinAgeAux),
     findall([C,A,V],preference(C,A,V),Preferences),
-
-    %%%Route
     findall(StartTime,startTime(_,StartTime),StartTimesAux),
     findall(EndTime,endTime(_,EndTime),EndTimesAux),
     minimumAgeForWalking(WalkingAge),
@@ -142,8 +107,6 @@ getScheduleAndRoute:-
     findall([A,B,Time],travelByCar(A,B,Time),RoutePaths),
     getWalkingPaths(WalkingTime,WalkingPaths),
     getChildrenThatCanWalk(IdChildrenAux,WalkingAge,ChildrenCanWalk),
-
-
     length(IdChildrenAux,NumberOfChildren),
     length(IdActivitiesAux,NumberOfActivities),
     %Generate Arrays of Variables for labeling
@@ -151,21 +114,14 @@ getScheduleAndRoute:-
     length(Activities,NumberOfActivities),
     length(Ages,NumberOfChildren),
     length(MinAges,NumberOfActivities),
-    %Route
     length(RoutePaths,NumberOfPossiblePaths),
     NumberOfPaths is NumberOfChildren*2,
     VoidNumber is NumberOfPossiblePaths+1,
     length(Route,NumberOfPaths),
     length(StartTimes,NumberOfActivities),
     length(EndTimes,NumberOfActivities),
-%    length(ChildrenCanWalk,NumberOfChildren),
     length(ExcludingRoutes,NumberOfPossiblePaths),
-
     domain(ExcludingRoutes,0,VoidNumber),
-    %0 is default, no children with id 0
-%    domain(ChildrenCanWalk,1,NumberOfChildren),
-
-
     domain(Children,1,NumberOfChildren),
     domain(Activities,1,NumberOfActivities),
     getGlobalCardinalityDomain(AgeAux,AgeDomain),
@@ -177,32 +133,28 @@ getScheduleAndRoute:-
     SumResultMax is Max * NumberOfChildren,
     SumResultMin is Min * NumberOfChildren,
     SumResult in SumResultMin..SumResultMax,
-    %%%Route
+    Count in 0..NumberOfPossiblePaths,
     domain(Route,0,VoidNumber),
     getGlobalCardinalityDomain(StartTimesAux,StartTimeDomain),
     getGlobalCardinalityDomain(EndTimesAux,EndTimeDomain),
     global_cardinality(StartTimes,StartTimeDomain),
     global_cardinality(EndTimes,EndTimeDomain),
-
     all_distinct(Children),
     all_distinct(Activities),
     %All ages are diferent (evolve that?) (Removing this should be enough)
     all_distinct(Ages),
     all_distinct(MinAges),
-    %%%Route
     all_distinct(StartTimes),
     all_distinct(EndTimes),
     %Prepare Results
     linkIndexesAndValues(AgeAux,Children,Ages),
     linkIndexesAndValues(MinAgeAux,Activities,MinAges),
-    %%%Route
     linkIndexesAndValues(StartTimesAux,Activities,StartTimes),
     linkIndexesAndValues(EndTimesAux,Activities,EndTimes),
     %Restrictions
     ageAndPreferenceRestrictions(Children,Activities,Ages,MinAges),
     evaluatePreferences(Children,Activities,Preferences,ListOfPreferences),
     sumAirVariable(ListOfPreferences,SumResult),
-    %%%Route
     calculateRoute(
         NumberOfActivities,
         VoidNumber,
@@ -219,21 +171,15 @@ getScheduleAndRoute:-
         NumberOfPaths,
         Count
     ),
-
     append(Children,Activities,CA),
     append(CA,Route,CAR),
     append(CAR,ExcludingRoutes,CARE),
-    write('Vars Before: '),write(CARE),nl,
-    write('SumResult: '),write(SumResult),nl,
-    labeling([maximize(SumResult)],[SumResult|CARE]),
-    write('Childs: '),write(Children),nl,
-    write('Activities: '),write(Activities),nl,
-    write('SumResult: '),write(SumResult),nl,
-    write('Route: '),write(Route),nl,
-        write('Ages: '),write(Ages),nl,
-        write('StartTimes: '),write(StartTimes),nl,
-        write('EndTimes: '),write(EndTimes),nl,
+    labeling([maximize(SumResult),maximize(Count)],[SumResult,Count|CARE]),
+        write('SumResult: '),write(SumResult),nl,
+        write('Count: '),write(Count),nl,
+        write('Children: '),write(Children),nl,
+        write('Activities: '),write(Activities),nl,
+        write('Route: '),write(Route),nl,
         write('ChildrenCanWalk: '),write(ChildrenCanWalk),nl,
-        write('WalkingPaths: '),write(WalkingPaths),nl,
-        write('ExcludingRoutes: '),write(ExcludingRoutes),nl,
+        write('WalkingPaths: '),write(ExcludingRoutes),nl,
         write(RoutePaths).

@@ -1,7 +1,7 @@
 
 %linkIndexesAndValues(_Original,_Indexes,_Values)
 %   _Original: A list with real values that will appear in _Values
-%   _Indexes: A list with sequence indexes (1,2,3,...), that will be populated by labeling
+%   _Indexes: A list with indexes (1,2,3,...), that will be populated by labeling
 %   _Values: The values that appear in _Original but in the order selected by labeling and connected with _Indexes
 %
 %   This function will define the position of each Value in _Values, link it with the appropriate Index in _Indexes
