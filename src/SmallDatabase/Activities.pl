@@ -35,16 +35,16 @@ activityMinimumAge(3,3).
 activityMinimumAge(4,0).
 
 %startTime(_Id,_Hour HH:mm (24h))
-startTime(1,1700).
-startTime(2,1645).
-startTime(3,1610).
-startTime(4,1628).
+startTime(1,1000).
+startTime(2,1008).
+startTime(3,1010).
+startTime(4,1020).
 
 %endTime(_Id,_Hour HH:mm (24h))
-endTime(1,1900).
-endTime(2,1815).
-endTime(3,1740).
-endTime(4,1827).
+endTime(1,1013).
+endTime(2,1025).
+endTime(3,1028).
+endTime(4,1026).
 
 %duration(_Id,_TimeInMinutes)
 duration(1,120).
@@ -59,21 +59,21 @@ travelByCar(0,2,0).
 travelByCar(0,3,0).
 travelByCar(0,4,0).
 
-travelByCar(1,2,6).
-travelByCar(1,3,13).
+travelByCar(1,2,5).
+travelByCar(1,3,5).
 travelByCar(1,4,7).
 
-travelByCar(2,1,6).
-travelByCar(2,3,12).
+travelByCar(2,1,5).
+travelByCar(2,3,3).
 travelByCar(2,4,1).
 
-travelByCar(3,1,13).
-travelByCar(3,2,12).
-travelByCar(3,4,7).
+travelByCar(3,1,5).
+travelByCar(3,2,3).
+travelByCar(3,4,3).
 
 travelByCar(4,1,7).
 travelByCar(4,2,1).
-travelByCar(4,3,7).
+travelByCar(4,3,3).
 
 travelByCar(1,0,0).
 travelByCar(2,0,0).
@@ -82,19 +82,19 @@ travelByCar(4,0,0).
 
 %travelByFoot(_From,_To,_TimeInMinutes)
 travelByFoot(0,1,120).
-travelByFoot(0,2,10).
+travelByFoot(0,2,80).
 travelByFoot(0,3,60).
 travelByFoot(0,4,144).
 
 travelByFoot(1,0,120).
-travelByFoot(1,2,60).
+travelByFoot(1,2,80).
 travelByFoot(1,3,132).
 travelByFoot(1,4,72).
 
-travelByFoot(2,0,10).
+travelByFoot(2,0,80).
 travelByFoot(2,1,60).
 travelByFoot(2,3,120).
-travelByFoot(2,4,12).
+travelByFoot(2,4,2).
 
 travelByFoot(3,0,60).
 travelByFoot(3,1,132).
@@ -103,7 +103,7 @@ travelByFoot(3,4,72).
 
 travelByFoot(4,0,144).
 travelByFoot(4,1,72).
-travelByFoot(4,2,12).
+travelByFoot(4,2,2).
 travelByFoot(4,3,72).
 
 %marginTime(_TimeInMinutes).

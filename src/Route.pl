@@ -11,6 +11,7 @@ restrictFollowingPaths([A|T],PathId):-
 otherPathsMustBeHigherRestriction([_|T],PathId):-
     restrictFollowingPaths(T,PathId).
 %3
+pathNotPossibleRestriction([],_).
 pathNotPossibleRestriction([A|T],Value):-
     A #\= Value,
     pathNotPossibleRestriction(T,Value).
@@ -18,7 +19,7 @@ pathNotPossibleRestriction([A|T],Value):-
 %4
 noTwoConsecutiveRoutesWithSameId([_]).
 noTwoConsecutiveRoutesWithSameId([A,B|T]):-
-    (A #\ B) #\/ (A#=0 #/\ B#=0),
+    (A #\= B) #\/ (A#=0 #/\ B#=0),
     noTwoConsecutiveRoutesWithSameId([B|T]).
 
 %5
@@ -29,6 +30,8 @@ otherPathsMustBeSmallerRestriction([A|T],Value):-
 
 %6
 travelRestrictions(Route,PathId,[P1,P2,Time],Activities,StartTimes,EndTimes,VoidNumber):-
+    % write('ENTERING: '),nl.
+
     element(Pos2,Activities,P2),
     element(Pos2,StartTimes,StartTime2),
     element(Pos2,EndTimes,EndTime2),
@@ -236,6 +239,7 @@ calculateRoute(
 %    element(NewRoutePosition,Route,PathId),
 %    otherPathsMustBeHigherRestriction(Route,PathId),
     NewPathId is PathId+1,
+    write(NewPathId),nl,
     calculateRoute(
         VoidNumber,
         Route,
@@ -275,6 +279,7 @@ calculateRoute(
     CountAux,
     Count
 ):-
+    % write('Hello'),nl.
     checkIfItsAWalkingRoute([0,P2],WalkingPaths,Result),
     Result =:= 1,
     checkWalkPathForChild(
@@ -337,9 +342,9 @@ calculateRoute(
 ):-
     checkIfItsAWalkingRoute([P1,0],WalkingPaths,Result),
     Result =:= 0,
-%    element(RouteActualPosition,Route,PathId),
-%    NewRoutePosition #= RouteActualPosition + 1,
-%    otherPathsMustBeSmallerRestriction(Route,PathId),
+   element(RouteActualPosition,Route,PathId),
+   NewRoutePosition #= RouteActualPosition + 1,
+   otherPathsMustBeSmallerRestriction(Route,PathId),
     NewPathId is PathId+1,
     calculateRoute(
         VoidNumber,
@@ -353,7 +358,7 @@ calculateRoute(
         EndTimes,
         ExcludingRoutes,
         NewPathId,
-        RouteActualPosition,
+        NewRoutePosition,
         RoutePosition,
         ExcludingActualPosition,
         ExcludingPosition,

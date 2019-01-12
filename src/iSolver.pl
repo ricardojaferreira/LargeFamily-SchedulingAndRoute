@@ -37,12 +37,12 @@ evaluatePreferences(Children,Activities,Preferences,ListOfPreferences):-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 getWalkingPaths([],WalkingPaths,_,WalkingPaths).
-getWalkingPaths([[_,_,_]|R],Aux,WalkingTime,WalkingPaths):-
-    getWalkingPaths(R,Aux,WalkingTime,WalkingPaths).
 getWalkingPaths([[A,B,T]|R],Aux,WalkingTime,WalkingPaths):-
     T =< WalkingTime,
     append([[A,B]],Aux,Aux1),
     getWalkingPaths(R,Aux1,WalkingTime,WalkingPaths).
+getWalkingPaths([[_,_,_]|R],Aux,WalkingTime,WalkingPaths):-
+    getWalkingPaths(R,Aux,WalkingTime,WalkingPaths).
 
 getWalkingPaths(WalkingTime,WalkingPaths):-
     findall([A,B,Time],travelByFoot(A,B,Time),FootPaths),
@@ -105,8 +105,8 @@ getScheduleAndRoute:-
     findall(EndTime,endTime(_,EndTime),EndTimesAux),
     minimumAgeForWalking(WalkingAge),
     maxTimeWalking(WalkingTime),
-    findall([A,B,Time],travelByCar(A,B,Time),RoutePaths),
     getWalkingPaths(WalkingTime,WalkingPaths),
+    findall([A,B,Time],travelByCar(A,B,Time),RoutePaths),
     getChildrenThatCanWalk(IdChildrenAux,WalkingAge,ChildrenCanWalk),
     length(IdChildrenAux,NumberOfChildren),
     length(IdActivitiesAux,NumberOfActivities),
@@ -115,14 +115,18 @@ getScheduleAndRoute:-
     length(Activities,NumberOfActivities),
     length(Ages,NumberOfChildren),
     length(MinAges,NumberOfActivities),
-    length(RoutePaths,NumberOfPossiblePaths),
-    NumberOfPaths is NumberOfChildren*2,
-    VoidNumber is NumberOfPossiblePaths+1,
-    length(Route,NumberOfPaths),
+    % length(RoutePaths,NumberOfPossiblePaths),
+    % NumberOfPaths is NumberOfChildren*2,
+    % VoidNumber is NumberOfPossiblePaths+1,
+    MaxNumberOfStops is (NumberOfActivities*2)+2,
+    MaxSchedules is NumberOfActivities*2,
+    length(Route,MaxNumberOfStops),
+    % length(WalkingActivities,MaxNumberOfStops),
+    length(Times,MaxSchedules),
     length(StartTimes,NumberOfActivities),
     length(EndTimes,NumberOfActivities),
-    length(ExcludingRoutes,NumberOfPossiblePaths),
-    domain(ExcludingRoutes,0,VoidNumber),
+    % length(ExcludingRoutes,NumberOfPossiblePaths),
+    % domain(ExcludingRoutes,0,VoidNumber),
     domain(Children,1,NumberOfChildren),
     domain(Activities,1,NumberOfActivities),
     getGlobalCardinalityDomain(AgeAux,AgeDomain),
@@ -134,8 +138,10 @@ getScheduleAndRoute:-
     SumResultMax is Max * NumberOfChildren,
     SumResultMin is Min * NumberOfChildren,
     SumResult in SumResultMin..SumResultMax,
-    Count in 0..NumberOfPossiblePaths,
-    domain(Route,0,VoidNumber),
+    % Count in 0..NumberOfPossiblePaths,
+    domain(Route,0,NumberOfActivities),
+    % domain(WalkingActivities,0,NumberOfActivities),
+    domain(Times,0,2359),
     getGlobalCardinalityDomain(StartTimesAux,StartTimeDomain),
     getGlobalCardinalityDomain(EndTimesAux,EndTimeDomain),
     global_cardinality(StartTimes,StartTimeDomain),
@@ -156,37 +162,32 @@ getScheduleAndRoute:-
     ageAndPreferenceRestrictions(Children,Activities,Ages,MinAges),
     evaluatePreferences(Children,Activities,Preferences,ListOfPreferences),
     sumAirVariable(ListOfPreferences,SumResult),
-    calculateRoute()
-
-
-
-    % calculateRoute(
-    %     NumberOfActivities,
-    %     VoidNumber,
-    %     Route,
-    %     RoutePaths,
-    %     ChildrenCanWalk,
-    %     WalkingPaths,
-    %     Children,
-    %     Activities,
-    %     StartTimes,
-    %     EndTimes,
-    %     ExcludingRoutes,
-    %     1,
-    %     NumberOfPaths,
-    %     Count
-    % ),
+    % getRejectedRoutes(RejectedRoutes),
+    element(P,Children,1),
+    element(P,Activities,ChildrenCanWalkActivity),
+    calculateRoute(
+        RoutePaths,
+        ChildrenCanWalkActivity,
+        WalkingPaths,
+        Activities,
+        StartTimes,
+        EndTimes,
+        Route,
+        Times
+    ),
     append(Children,Activities,CA),
     append(CA,Route,CAR),
-    append(CAR,ExcludingRoutes,CARE),
-    labeling([maximize(SumResult),maximize(Count),time_out(100000,Flag)],[SumResult,Count|CARE]),
+    append(CAR,Times,CART),
+    % write('Route before: '),write(Route),nl,
+    % write('Times before: '),write(Times),nl,
+    labeling([maximize(SumResult),time_out(1000,Flag)],[SumResult|CART]),
     % labeling([maximize(SumResult)],[SumResult|CA]),
-        write('FLAG: '),write(Flag),nl,
-        write('SumResult: '),write(SumResult),nl,
-        write('Count: '),write(Count),nl,
-        write('Children: '),write(Children),nl,
-        write('Activities: '),write(Activities),nl,
+        % write('FLAG: '),write(Flag),nl,
+        % write('SumResult: '),write(SumResult),nl,
+        % % write('Walking Activities: '),write(WalkingActivities),nl,
+        % write('Children Can Walk Activity: '),write(ChildrenCanWalkActivity),nl,
+        % write('Start Times: '),write(StartTimes),nl,
+        % write('End Times: '),write(EndTimes),nl,
         write('Route: '),write(Route),nl,
-        write('ChildrenCanWalk: '),write(ChildrenCanWalk),nl,
-        write('WalkingPaths: '),write(ExcludingRoutes),nl,
-        write(RoutePaths).
+        write('Times: '),write(Times),nl,
+        display(Children,Activities,ChildrenCanWalk,WalkingPaths,Route,Times,Flag,SumResult,SumResultMax).

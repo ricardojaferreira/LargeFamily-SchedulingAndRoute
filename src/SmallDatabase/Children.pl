@@ -9,7 +9,7 @@ ageChildren(2,8).
 ageChildren(3,6).
 ageChildren(4,2).
 
-%preference(_IdFilho,_IdActividade)
+%preference(_IdFilho,_IdActividade,_Ranking)
 preference(1,1,10).
 preference(1,2,40).
 preference(1,3,30).
@@ -37,4 +37,4 @@ minimumAgeForWalking(11).
 
 %maxTimeWalking(minutos)
 %   Maximum time walking in minutes
-maxTimeWalking(20).
+maxTimeWalking(2).
